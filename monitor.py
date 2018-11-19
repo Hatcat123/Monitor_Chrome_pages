@@ -23,15 +23,17 @@ async def main(host):
     web_socket = get_redis_ws(host)
     browser = await connect({'browserWSEndpoint': web_socket,
                              "ignoreHTTPSErrors": True})
-    page_list = await browser.pages()
-    print('等待清理')
-    time.sleep(config.PAGE_SLEEP_TIME)
-    for page in page_list:
-        try:
-            await page.close()
-        except Exception as e:
-            pass
-
+    try:
+        page_list = await browser.pages()
+        print('等待清理')
+        time.sleep(config.PAGE_SLEEP_TIME)
+        for page in page_list:
+            try:
+                await page.close()
+            except Exception as e:
+                pass
+    except Exception as e:
+        pass
 
 def clear_unactive_page(host):
     asyncio.get_event_loop().run_until_complete(main(host))
@@ -43,6 +45,7 @@ while 1:
         page_num = pages_num(host)
         if page_num > (ws.get('max_page')):
             # 执行清除无效页面的函数
+            print('开始清理')
             clear_unactive_page(host)
             print('清理完毕')
 
